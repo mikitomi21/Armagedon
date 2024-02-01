@@ -1,9 +1,10 @@
+import sys
 import chess
 import time
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
 
-STOCKFISH_PATH = "C:\\Users\\kubas\\Desktop\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
 NUMBER_OF_GAMES = 100
@@ -155,7 +156,7 @@ if __name__ == "__main__":
 
         result = board.result() if not result else result
         print("Wynik:", result)
-        
+
         set_result(result, results)
         print(results)
 
