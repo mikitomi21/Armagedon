@@ -1,9 +1,11 @@
+import sys
 import chess
+import chess.polyglot
 import time
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
 
-STOCKFISH_PATH = "C:\\Users\\kubas\\Desktop\\stockfish\\stockfish-windows-x86-64-avx2.exe"
+STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
 NUMBER_OF_GAMES = 10
@@ -108,6 +110,20 @@ def draw_results(results: list[int, int, int]) -> None:
     plt.show()
 
 
+def set_random_opening(chess_board: chess.Board) -> chess.Board:
+    with chess.polyglot.open_reader("static/opening_book/Perfect2023.bin") as reader:
+        while True:
+            try:
+                entry = reader.weighted_choice(chess_board)
+                print(entry)
+                chess_board.push(entry.move)
+            except IndexError:
+                # No more moves in opening book
+                break
+
+    return chess_board
+
+
 if __name__ == "__main__":
     stockfish_white = set_engine(parameters_white)
     stockfish_black = set_engine(parameters_black)
@@ -119,6 +135,7 @@ if __name__ == "__main__":
 
     for i in range(NUMBER_OF_GAMES):
         board = chess.Board()
+        board = set_random_opening(board)
         white_time, black_time = WHITE_TIME_LIMIT, BLACK_TIME_LIMIT
         result = None
 
@@ -148,6 +165,8 @@ if __name__ == "__main__":
                     break
 
                 print(f"Black time: {black_time}")
+
+            print(board)
 
         result = board.result() if not result else result
         print("Wynik:", result)
