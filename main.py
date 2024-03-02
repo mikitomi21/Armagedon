@@ -4,14 +4,15 @@ import chess.polyglot
 import time
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
+import re
 
 STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
-NUMBER_OF_GAMES = 10
-BLACK_TIME_LIMIT = 30
-WHITE_TIME_LIMIT = 180
-INCREMENT = 0
+NUMBER_OF_GAMES = 1
+BLACK_TIME_LIMIT = 10
+WHITE_TIME_LIMIT = 10
+INCREMENT = 0.1
 UCI_ELO = 2035
 HASH = 2048
 THREADS = 6
@@ -64,10 +65,14 @@ def set_engine(parameters: dict) -> Stockfish:
     return engine
 
 
-def make_move(engine: Stockfish, board: chess.Board, player: COLORS, player_time: float) -> None:
+def make_move(engine: Stockfish, board: chess.Board, player: COLORS, player_time: float, enemy_time: float) -> None:
     try:
-        move = engine.get_best_move(wtime=int(player_time*1000)) if player == WHITE else engine.get_best_move(btime=int(player_time*1000))
-        # print(f"move: {move}")
+        move = None
+        if player == WHITE:
+            move = engine.get_best_move(wtime=int(player_time * 1000), btime=int(enemy_time * 1000))
+        else:
+            move = engine.get_best_move(btime=int(player_time * 1000), wtime=int(enemy_time * 1000))
+
         board.push_san(move)
     except StockfishException as e:
         print(e)
@@ -144,8 +149,21 @@ if __name__ == "__main__":
                 stockfish_white.set_fen_position(board.fen())
 
                 current_time = time.time()
-                make_move(stockfish_white, board, WHITE, white_time)
-                white_time -= time.time() - current_time - INCREMENT
+                make_move(stockfish_white, board, WHITE, white_time, black_time)
+                after_time = time.time()
+                white_time -= after_time - current_time - INCREMENT
+
+                debug_line = ""
+                with open("debug_white.txt", 'r') as file:
+                    lines = file.readlines()
+                    debug_line = lines[-2]
+
+                time_match = re.search(r'time (\d+)', debug_line)
+                time_value = 0
+                if time_match:
+                    time_value = int(time_match.group(1))
+                print(f"Time spent thinking here: {after_time} - {current_time} = {after_time - current_time}, from "
+                      f"debug: {time_value/1000}")
 
                 if time_is_over(white_time):
                     result = ResultOfGame.BLACK_WIN
@@ -157,7 +175,7 @@ if __name__ == "__main__":
                 stockfish_black.set_fen_position(board.fen())
 
                 current_time = time.time()
-                make_move(stockfish_black, board, BLACK, black_time)
+                make_move(stockfish_black, board, BLACK, black_time, white_time)
                 black_time -= time.time() - current_time - INCREMENT
 
                 if time_is_over(black_time):
