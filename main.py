@@ -17,8 +17,8 @@ STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
 NUMBER_OF_GAMES = 100
-BLACK_TIME_LIMIT = 10
-WHITE_TIME_LIMIT = 10
+BLACK_TIME_LIMIT = 1
+WHITE_TIME_LIMIT = 1
 INCREMENT = 0
 UCI_ELO = 2035
 HASH = 6048
@@ -86,15 +86,6 @@ def time_is_over(player_time: float) -> bool:
     return False
 
 
-def set_result(result_of_game: str, results: list[int]) -> None:
-    if result_of_game == ResultOfGame.DRAW:
-        results[0] += 1
-    elif result_of_game == ResultOfGame.WHITE_WIN:
-        results[1] += 1
-    elif result_of_game == ResultOfGame.BLACK_WIN:
-        results[2] += 1
-
-
 def draw_results(results: list[int, int, int]) -> None:
     LOGGER.debug(results)
     fig, ax = plt.subplots()
@@ -142,7 +133,6 @@ if __name__ == "__main__":
 
     game_name = FileManager.create_new_file_game()
     results = ResultOfGame()
-    ChartManager.linear_chart("0000.txt")
 
     for i in range(NUMBER_OF_GAMES):
         if i % 10 == 0:
@@ -189,3 +179,4 @@ if __name__ == "__main__":
         LOGGER.info(f"Result: {result}")
 
     ChartManager.bar_chart(game_name, results)
+    ChartManager.linear_chart(game_name)
