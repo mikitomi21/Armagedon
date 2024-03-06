@@ -2,10 +2,15 @@ import sys
 import chess
 import chess.polyglot
 import time
+import datetime
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
 import re
 import logging
+import re
+
+from file_manager import FileManager
+from result_of_game import ResultOfGame
 
 LOGGER = logging.getLogger()
 IS_LOGGER_DISABLED = False
@@ -24,7 +29,7 @@ MIN_THINKING_TIME = 1
 
 parameters_white = {
     "Debug Log File": "debug_white.txt",
-    "Contempt": 20,
+    "Contempt": 0,
     "Min Split Depth": 0,
     "Threads": THREADS,
     "Ponder": "false",
@@ -41,7 +46,7 @@ parameters_white = {
 
 parameters_black = {
     "Debug Log File": "debug_black.txt",
-    "Contempt": -20,
+    "Contempt": 0,
     "Min Split Depth": 0,
     "Threads": THREADS,
     "Ponder": "false",
@@ -55,12 +60,6 @@ parameters_black = {
     "UCI_LimitStrength": "false",
     "UCI_Elo": UCI_ELO
 }
-
-
-class ResultOfGame:
-    DRAW = "1/2-1/2"
-    WHITE_WIN = "1-0"
-    BLACK_WIN = "0-1"
 
 
 def set_engine(parameters: dict) -> Stockfish:
@@ -89,7 +88,7 @@ def time_is_over(player_time: float) -> bool:
     return False
 
 
-def set_result(result_of_game: str, results: list[int, int, int]) -> None:
+def set_result(result_of_game: str, results: list[int]) -> None:
     if result_of_game == ResultOfGame.DRAW:
         results[0] += 1
     elif result_of_game == ResultOfGame.WHITE_WIN:
@@ -143,6 +142,7 @@ if __name__ == "__main__":
     version = stockfish_white.get_stockfish_major_version()
     LOGGER.info(f"Version of stockfish engine: {version}")
 
+    game_name = FileManager.create_new_file_game()
     results = [0, 0, 0]  # draw - white - black
 
     for i in range(NUMBER_OF_GAMES):
@@ -183,6 +183,9 @@ if __name__ == "__main__":
             LOGGER.debug(f"\n{board}")
 
         result = board.result() if not result else result
+        FileManager.save_result_into_file(game_name, result)
+        print("Wynik:", result)
+
         set_result(result, results)
 
         LOGGER.info(f"Result: {result}")
