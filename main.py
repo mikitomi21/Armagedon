@@ -4,17 +4,22 @@ import chess.polyglot
 import time
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
+import re
+import logging
 
+LOGGER = logging.getLogger()
+IS_LOGGER_DISABLED = False
+LOGGING_LEVEL = logging.INFO  # DEBUG - position, moves, etc, INFO - simulation info?
 STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
-NUMBER_OF_GAMES = 10
-BLACK_TIME_LIMIT = 30
-WHITE_TIME_LIMIT = 180
+NUMBER_OF_GAMES = 100
+BLACK_TIME_LIMIT = 10
+WHITE_TIME_LIMIT = 10
 INCREMENT = 0
 UCI_ELO = 2035
-HASH = 2048
-THREADS = 6
+HASH = 6048
+THREADS = 8
 MIN_THINKING_TIME = 1
 
 parameters_white = {
@@ -64,18 +69,22 @@ def set_engine(parameters: dict) -> Stockfish:
     return engine
 
 
-def make_move(engine: Stockfish, board: chess.Board, player: COLORS, player_time: float) -> None:
+def make_move(engine: Stockfish, board: chess.Board, player: COLORS, player_time: float, enemy_time: float) -> None:
     try:
-        move = engine.get_best_move(wtime=int(player_time*1000)) if player == WHITE else engine.get_best_move(btime=int(player_time*1000))
-        # print(f"move: {move}")
+        move = None
+        if player == WHITE:
+            move = engine.get_best_move(wtime=int(player_time * 1000), btime=int(enemy_time * 1000))
+        else:
+            move = engine.get_best_move(btime=int(player_time * 1000), wtime=int(enemy_time * 1000))
+
         board.push_san(move)
     except StockfishException as e:
-        print(e)
+        LOGGER.error(e)
 
 
 def time_is_over(player_time: float) -> bool:
     if player_time <= 0:
-        print(f"Lost on time: {player_time}")
+        LOGGER.debug(f"Lost on time: {player_time}")
         return True
     return False
 
@@ -90,7 +99,7 @@ def set_result(result_of_game: str, results: list[int, int, int]) -> None:
 
 
 def draw_results(results: list[int, int, int]) -> None:
-    print(results)
+    LOGGER.debug(results)
     fig, ax = plt.subplots()
     results_of_game = [ResultOfGame.DRAW, ResultOfGame.WHITE_WIN, ResultOfGame.BLACK_WIN]
     bar_labels = ['draw', 'white win', 'black win']
@@ -115,7 +124,7 @@ def set_random_opening(chess_board: chess.Board) -> chess.Board:
         while True:
             try:
                 entry = reader.weighted_choice(chess_board)
-                print(entry)
+                LOGGER.debug(entry)
                 chess_board.push(entry.move)
             except IndexError:
                 # No more moves in opening book
@@ -125,53 +134,57 @@ def set_random_opening(chess_board: chess.Board) -> chess.Board:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=LOGGING_LEVEL)
+    LOGGER.disabled = IS_LOGGER_DISABLED
+
     stockfish_white = set_engine(parameters_white)
     stockfish_black = set_engine(parameters_black)
 
     version = stockfish_white.get_stockfish_major_version()
-    print(f"Version of stockfish engine: {version}")
+    LOGGER.info(f"Version of stockfish engine: {version}")
 
     results = [0, 0, 0]  # draw - white - black
 
     for i in range(NUMBER_OF_GAMES):
+        if i % 10 == 0:
+            LOGGER.info(f"Game number: {i}")
+            LOGGER.info(f"Overall results: {results}")
         board = chess.Board()
         board = set_random_opening(board)
+        stockfish_white.set_fen_position(board.fen())
+        stockfish_black.set_fen_position(board.fen())
         white_time, black_time = WHITE_TIME_LIMIT, BLACK_TIME_LIMIT
         result = None
 
         while board.result() == GAME_IS_ON:
             if board.turn == WHITE:
-                stockfish_white.set_fen_position(board.fen())
-
+                stockfish_white.set_fen_position(board.fen(), send_ucinewgame_token=False)
                 current_time = time.time()
-                make_move(stockfish_white, board, WHITE, white_time)
+                make_move(stockfish_white, board, WHITE, white_time, black_time)
                 white_time -= time.time() - current_time - INCREMENT
 
                 if time_is_over(white_time):
                     result = ResultOfGame.BLACK_WIN
                     break
 
-                print(f"White time: {white_time}")
+                LOGGER.debug(f"White time: {white_time}")
 
             elif board.turn == BLACK:
-                stockfish_black.set_fen_position(board.fen())
-
+                stockfish_black.set_fen_position(board.fen(), send_ucinewgame_token=False)
                 current_time = time.time()
-                make_move(stockfish_black, board, BLACK, black_time)
+                make_move(stockfish_black, board, BLACK, black_time, white_time)
                 black_time -= time.time() - current_time - INCREMENT
 
                 if time_is_over(black_time):
                     result = ResultOfGame.WHITE_WIN
                     break
 
-                print(f"Black time: {black_time}")
-
-            print(board)
+                LOGGER.debug(f"Black time: {black_time}")
+            LOGGER.debug(f"\n{board}")
 
         result = board.result() if not result else result
-        print("Wynik:", result)
-
         set_result(result, results)
-        print(results)
+
+        LOGGER.info(f"Result: {result}")
 
     draw_results(results)
