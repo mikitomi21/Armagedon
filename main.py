@@ -161,20 +161,7 @@ if __name__ == "__main__":
                 stockfish_white.set_fen_position(board.fen(), send_ucinewgame_token=False)
                 current_time = time.time()
                 make_move(stockfish_white, board, WHITE, white_time, black_time)
-                after_time = time.time()
-                white_time -= after_time - current_time - INCREMENT
-
-                debug_line = ""
-                with open("debug_white.txt", 'r') as file:
-                    lines = file.readlines()
-                    debug_line = lines[-2]
-
-                time_match = re.search(r'time (\d+)', debug_line)
-                time_value = 0
-                if time_match:
-                    time_value = int(time_match.group(1))
-                LOGGER.debug(f"Time spent thinking here: {after_time} - {current_time} = {after_time - current_time}, from "
-                      f"debug: {time_value/1000}")
+                white_time -= time.time() - current_time - INCREMENT
 
                 if time_is_over(white_time):
                     result = ResultOfGame.BLACK_WIN
