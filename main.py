@@ -2,15 +2,13 @@ import sys
 import chess
 import chess.polyglot
 import time
-import datetime
 from stockfish import Stockfish, StockfishException
 import matplotlib.pyplot as plt
-import re
 import logging
-import re
 
 from file_manager import FileManager
 from result_of_game import ResultOfGame
+from chart_manager import ChartManager
 
 LOGGER = logging.getLogger()
 IS_LOGGER_DISABLED = False
@@ -143,7 +141,8 @@ if __name__ == "__main__":
     LOGGER.info(f"Version of stockfish engine: {version}")
 
     game_name = FileManager.create_new_file_game()
-    results = [0, 0, 0]  # draw - white - black
+    results = ResultOfGame()
+    ChartManager.linear_chart("0000.txt")
 
     for i in range(NUMBER_OF_GAMES):
         if i % 10 == 0:
@@ -185,9 +184,8 @@ if __name__ == "__main__":
         result = board.result() if not result else result
         FileManager.save_result_into_file(game_name, result)
         print("Wynik:", result)
-
-        set_result(result, results)
+        results.set_result(result)
 
         LOGGER.info(f"Result: {result}")
 
-    draw_results(results)
+    ChartManager.bar_chart(game_name, results)
