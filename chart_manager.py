@@ -9,6 +9,7 @@ class ChartManager:
     DRAW_COLOR = 'blue'
     WHITE_WIN_COLOR = 'green'
     BLACK_WIN_COLOR = 'red'
+    CHARTS_DIRECTORY = 'charts'
 
     @staticmethod
     def linear_chart(game_name: str) -> None:
@@ -20,9 +21,6 @@ class ChartManager:
             draws.append(result[ResultOfGame.DRAW] * 100 / (i+1))
             white_wins.append(result[ResultOfGame.WHITE_WIN] * 100 / (i+1))
             black_wins.append(result[ResultOfGame.BLACK_WIN] * 100 / (i+1))
-        print(draws)
-        print(white_wins)
-        print(black_wins)
 
         fig, ax = plt.subplots(figsize=(10,6))
         number_of_games = len(draws)
@@ -33,6 +31,8 @@ class ChartManager:
 
         labels = ["Black wins", "Draws", "White wins"]
         ax.legend(labels)
+        chart_name = f"{ChartManager.CHARTS_DIRECTORY}/{game_name[:-4]}_linear.png"
+        plt.savefig(chart_name)
         plt.show()
 
     @staticmethod
@@ -55,5 +55,7 @@ class ChartManager:
         ax.set_xticklabels(bar_labels)
 
         ax.legend(bar_labels)
+        chart_name = f"{ChartManager.CHARTS_DIRECTORY}/{game_name[:-4]}_bar.png"
+        plt.savefig(chart_name)
 
         plt.show()
