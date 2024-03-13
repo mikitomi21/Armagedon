@@ -35,20 +35,20 @@ class FileManager:
             file.write(f"{result}\n")
 
     @staticmethod
-    def get_results_from_file(game_name: str) -> dict[str, int]:
+    def get_results_from_file(game_name: str) -> ResultOfGame:
         results = ResultOfGame()
         with open(f"{FileManager.GAMES_DIRECTORY}/{game_name}", 'r', encoding='utf-8') as file:
             lines = file.readlines()[1:]
             for result in lines:
                 results.set_result(result.replace("\n", ""))
 
-        return results.get_results()
+        return results
 
     @staticmethod
-    def get_results_for_every_game_from_file(game_name: str) -> list[dict[str, int]]:
+    def get_results_for_every_game_from_file(game_name: str) -> list[ResultOfGame]:
         results = ResultOfGame()
         with open(f"{FileManager.GAMES_DIRECTORY}/{game_name}", 'r', encoding='utf-8') as file:
             lines = file.readlines()[1:]
             for result in lines:
                 results.set_result(result.replace("\n", ""))
-                yield results.get_results()
+                yield results

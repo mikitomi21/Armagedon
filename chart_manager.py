@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 # import numpy as np
 
 from file_manager import FileManager
@@ -12,15 +13,22 @@ class ChartManager:
     CHARTS_DIRECTORY = 'charts'
 
     @staticmethod
+    def create_chart_dir() -> None:
+        charts_path = os.path.join(os.getcwd(), ChartManager.CHARTS_DIRECTORY)
+        if not os.path.exists(charts_path):
+            os.mkdir(charts_path)
+
+    @staticmethod
     def linear_chart(game_name: str) -> None:
+        ChartManager.create_chart_dir()
         results = FileManager.get_results_for_every_game_from_file(game_name)
         draws = []
         white_wins = []
         black_wins = []
         for i, result in enumerate(results):
-            draws.append(result[ResultOfGame.DRAW] * 100 / (i+1))
-            white_wins.append(result[ResultOfGame.WHITE_WIN] * 100 / (i+1))
-            black_wins.append(result[ResultOfGame.BLACK_WIN] * 100 / (i+1))
+            draws.append(result.get_results()[ResultOfGame.DRAW] * 100 / (i+1))
+            white_wins.append(result.get_results()[ResultOfGame.WHITE_WIN] * 100 / (i+1))
+            black_wins.append(result.get_results()[ResultOfGame.BLACK_WIN] * 100 / (i+1))
 
         fig, ax = plt.subplots(figsize=(10,6))
         number_of_games = len(draws)
@@ -37,6 +45,7 @@ class ChartManager:
 
     @staticmethod
     def bar_chart(game_name: str, results: ResultOfGame = None) -> None:
+        ChartManager.create_chart_dir()
         if not results:
             results = FileManager.get_results_from_file(game_name)
 
@@ -45,12 +54,12 @@ class ChartManager:
         bar_labels = ['draw', 'white win', 'black win']
         bar_colors = ['grey', 'green', 'red']
 
-        ax.bar(results_of_game, results.values(), label=bar_labels, color=bar_colors)
+        ax.bar(results_of_game, results.get_results().values(), label=bar_labels, color=bar_colors)
 
         ax.set_ylabel('Number of games')
         ax.set_xlabel('Results of games')
 
-        ax.set_yticks(range(0, max(results.values()) + 1))
+        ax.set_yticks(range(0, max(results.get_results().values()) + 1))
         ax.set_xticks(results_of_game)
         ax.set_xticklabels(bar_labels)
 
