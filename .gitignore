@@ -4,4 +4,6 @@ debug_white.txt
 debug_black.txt
 charts/
 games/
+settings/*
+!settings/.gitkeep
 __pycache__/

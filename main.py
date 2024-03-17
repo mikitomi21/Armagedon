@@ -17,8 +17,8 @@ STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
 NUMBER_OF_GAMES = 10
-BLACK_TIME_LIMIT = 11
-WHITE_TIME_LIMIT = 18
+BLACK_TIME_LIMIT = 5
+WHITE_TIME_LIMIT = 15
 INCREMENT = 0
 UCI_ELO = 2035
 HASH = 6048
@@ -132,6 +132,8 @@ if __name__ == "__main__":
     LOGGER.info(f"Version of stockfish engine: {version}")
 
     game_name = FileManager.create_new_file_game()
+    FileManager.save_engine_params_to_file(game_name, parameters_white, 'stockfish', 'white')
+    FileManager.save_engine_params_to_file(game_name, parameters_black, 'stockfish', 'black')
     results = ResultOfGame()
 
     for i in range(NUMBER_OF_GAMES):

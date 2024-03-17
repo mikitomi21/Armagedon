@@ -1,10 +1,12 @@
 import os
 import datetime
+import json
 
 from result_of_game import ResultOfGame
 
 
 class FileManager:
+    SETTINGS_DIRECTORY = 'settings'
     GAMES_DIRECTORY = 'games'
     RANGE_OF_GAMES = 4  # 0000.txt
 
@@ -19,7 +21,7 @@ class FileManager:
 
         if games:
             last_game = games[0][:-FileManager.RANGE_OF_GAMES]
-            game_name = f"{str(int(last_game)+1).zfill(FileManager.RANGE_OF_GAMES)}.txt"
+            game_name = f"{str(int(last_game) + 1).zfill(FileManager.RANGE_OF_GAMES)}.txt"
         else:
             game_name = f"{str(0).zfill(FileManager.RANGE_OF_GAMES)}.txt"
 
@@ -52,3 +54,14 @@ class FileManager:
             for result in lines:
                 results.set_result(result.replace("\n", ""))
                 yield results
+
+    @staticmethod
+    def save_engine_params_to_file(game_name: str, params: dict, engine_name: str, color_name: str) -> None:
+        games_path = os.path.join(os.getcwd(), FileManager.SETTINGS_DIRECTORY)
+
+        if not os.path.exists(games_path):
+            os.mkdir(games_path)
+
+        with open(f"{FileManager.SETTINGS_DIRECTORY}/{game_name[:-4]}_{engine_name}_{color_name}.txt", 'w',
+                  encoding='utf-8') as file:
+            json.dump(params, file)
