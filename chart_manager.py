@@ -26,16 +26,19 @@ class ChartManager:
         white_wins = []
         black_wins = []
         for i, result in enumerate(results):
-            draws.append(result.get_results()[ResultOfGame.DRAW] * 100 / (i+1))
-            white_wins.append(result.get_results()[ResultOfGame.WHITE_WIN] * 100 / (i+1))
-            black_wins.append(result.get_results()[ResultOfGame.BLACK_WIN] * 100 / (i+1))
+            draws.append(result.get_results()[ResultOfGame.DRAW] * 100 / (i + 1))
+            white_wins.append(result.get_results()[ResultOfGame.WHITE_WIN] * 100 / (i + 1))
+            black_wins.append(result.get_results()[ResultOfGame.BLACK_WIN] * 100 / (i + 1))
 
-        fig, ax = plt.subplots(figsize=(10,6))
+        fig, ax = plt.subplots(figsize=(10, 6))
         number_of_games = len(draws)
         for i in range(number_of_games):
             ax.bar(i, black_wins[i], color=ChartManager.BLACK_WIN_COLOR)
             ax.bar(i, draws[i], bottom=black_wins[i], color=ChartManager.DRAW_COLOR)
-            ax.bar(i, white_wins[i], bottom=draws[i]+black_wins[i], color=ChartManager.WHITE_WIN_COLOR)
+            ax.bar(i, white_wins[i], bottom=draws[i] + black_wins[i], color=ChartManager.WHITE_WIN_COLOR)
+
+        ax.set_xlabel('Game number')
+        ax.set_ylabel('Black-Draw-White ratio [%]')
 
         labels = ["Black wins", "Draws", "White wins"]
         ax.legend(labels)
@@ -59,7 +62,7 @@ class ChartManager:
         ax.set_ylabel('Number of games')
         ax.set_xlabel('Results of games')
 
-        ax.set_yticks(range(0, max(results.get_results().values()) + 1))
+        ax.set_yticks(list(set(results.get_results().values())))
         ax.set_xticks(results_of_game)
         ax.set_xticklabels(bar_labels)
 

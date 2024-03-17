@@ -16,9 +16,9 @@ LOGGING_LEVEL = logging.INFO  # DEBUG - position, moves, etc, INFO - simulation 
 STOCKFISH_PATH = str(sys.argv[1]) if len(sys.argv) > 1 else None
 GAME_IS_ON = "*"
 COLORS = [WHITE, BLACK] = [True, False]
-NUMBER_OF_GAMES = 100
-BLACK_TIME_LIMIT = 180
-WHITE_TIME_LIMIT = 110
+NUMBER_OF_GAMES = 10
+BLACK_TIME_LIMIT = 11
+WHITE_TIME_LIMIT = 18
 INCREMENT = 0
 UCI_ELO = 2035
 HASH = 6048
@@ -173,7 +173,6 @@ if __name__ == "__main__":
 
         result = board.result() if not result else result
         FileManager.save_result_into_file(game_name, result)
-        print("Wynik:", result)
         results.set_result(result)
 
         LOGGER.info(f"Result: {result}")
